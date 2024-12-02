@@ -1,0 +1,62 @@
+{
+  "name": "keyv-upstash",
+  "version": "0.1.0",
+  "description": "Upstash Redis storage adapter for Keyv",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rimraf ./dist && tsup src/index.ts --format cjs,esm --dts --clean",
+    "prepare": "pnpm build",
+    "clean": "rimraf ./node_modules ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mahdavipanah/keyv-upstash.git"
+  },
+  "keywords": [
+    "redis",
+    "keyv",
+    "storage",
+    "adapter",
+    "key",
+    "value",
+    "store",
+    "cache",
+    "ttl",
+    "upstash",
+    "cache-manager",
+    "node-cache",
+    "memory"
+  ],
+  "author": "Hamidreza Mahdavipanah <h.mahdavipanah@gmail.com> (https://hamidreza.tech)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mahdavipanah/keyv-upstash/issues"
+  },
+  "homepage": "https://github.com/mahdavipanah/keyv-upstash",
+  "dependencies": {
+    "@upstash/redis": "^1.34.3",
+    "keyv": "*"
+  },
+  "devDependencies": {
+    "@types/node": "18",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.3.5",
+    "type-fest": "^4.29.0"
+  },
+  "engines": {
+    "node": ">= 18"
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ]
+}
