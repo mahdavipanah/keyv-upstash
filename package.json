@@ -15,6 +15,8 @@
   "scripts": {
     "build": "rimraf ./dist && tsup src/index.ts --format cjs,esm --dts --clean",
     "prepare": "pnpm build",
+    "test": "vitest run --no-file-parallelism --coverage",
+    "test:ci": "vitest --no-file-parallelism --run --sequence.setupFiles=list",
     "clean": "rimraf ./node_modules ./dist"
   },
   "repository": {
@@ -47,10 +49,14 @@
     "keyv": "*"
   },
   "devDependencies": {
+    "@keyv/test-suite": "^2.0.2",
     "@types/node": "18",
+    "@vitest/coverage-v8": "^2.1.7",
     "rimraf": "^6.0.1",
     "tsup": "^8.3.5",
-    "type-fest": "^4.29.0"
+    "type-fest": "^4.29.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.7"
   },
   "engines": {
     "node": ">= 18"

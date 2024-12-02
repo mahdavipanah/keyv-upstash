@@ -1,5 +1,5 @@
 import EventEmitter from "events"
-import Upstash, { RedisConfigNodejs } from "@upstash/redis"
+import { RedisConfigNodejs, Redis } from "@upstash/redis"
 import { type KeyvStoreAdapter } from "keyv"
 import { MergeExclusive, RequiredKeysOf } from "type-fest"
 
@@ -9,7 +9,7 @@ type RedisConfigNodejsRequiredKeys = Pick<
 >
 
 type CommonOptions = {
-  dialect?: "upstash-redis"
+  dialect?: "redis"
   namespace?: string
   keyPrefixSeparator?: string
   defaultTtl?: number
@@ -17,7 +17,7 @@ type CommonOptions = {
   clearBatchSize?: number
 } & Omit<RedisConfigNodejs, keyof RedisConfigNodejsRequiredKeys>
 
-type OptionWithRedis = { upstashRedis: Upstash.Redis } & CommonOptions
+type OptionWithRedis = { upstashRedis: Redis } & CommonOptions
 
 type OptionWithoutRedis = Pick<
   RedisConfigNodejs,
@@ -31,13 +31,15 @@ type OptionWithoutRedis = Pick<
  * You must provide either the `upstashRedis` instance or both `url` and `token` for connecting to Upstash Redis.
  *
  * All the options from the Upstash Redis Node.js SDK are supported.
+ * IMPORTANT: The `automaticDeserialization` option is set to `false` by default and it is not recommended to change it
+ * because it can cause issues with storing and retrieving special types of values like Buffers, BigInt, etc.
  *
  * @typedef {Object} KeyvUpstashOptions
  *
- * @property {Upstash.Redis} [upstashRedis] - An existing Upstash Redis instance.
+ * @property {Redis} [upstashRedis] - An existing Upstash Redis instance.
  * @property {string} [url] - The Upstash Redis REST API URL.
  * @property {string} [token] - The Upstash Redis REST API token.
- * @property {string} [dialect="upstash-redis"] - The dialect to use, defaults to "upstash-redis".
+ * @property {string} [dialect="redis"] - The dialect to use, defaults to "redis".
  * @property {string} [namespace] - An optional namespace to prefix all keys with.
  * @property {string} [keyPrefixSeparator="::"] - A custom separator to use between the namespace and the key.
  * @property {number} [defaultTtl] - The default time-to-live (TTL) for keys, in milliseconds.
@@ -82,14 +84,14 @@ function optionsHasRedis(
  *
  * @template T - The type of the values to be stored. Defaults to `any`.
  */
-export class KeyvUpstashRedis<T = any>
+export class KeyvUpstash<T = any>
   extends EventEmitter
   implements KeyvStoreAdapter
 {
   /**
    * The Upstash Redis client instance.
    */
-  client: Upstash.Redis
+  client: Redis
 
   /**
    * The namespace to use for keys. Optional.
@@ -132,7 +134,7 @@ export class KeyvUpstashRedis<T = any>
     super()
 
     this.#initialOptions = { ...options }
-    this.#initialOptions.dialect = "upstash-redis"
+    this.#initialOptions.dialect = "redis"
 
     this.keyPrefixSeparator = options.keyPrefixSeparator ?? "::"
     this.namespace = options.namespace
@@ -143,7 +145,10 @@ export class KeyvUpstashRedis<T = any>
     if (optionsHasRedis(options)) {
       this.client = options.upstashRedis
     } else {
-      this.client = new Upstash.Redis(options)
+      this.client = new Redis({
+        ...options,
+        automaticDeserialization: false,
+      })
     }
   }
 
@@ -166,7 +171,7 @@ export class KeyvUpstashRedis<T = any>
    * Constructs the full key name by combining the namespace, key prefix separator, and the provided key.
    * If the namespace is not defined, it returns the provided key as is.
    */
-  #getKeyName(key: string): string {
+  getKeyName = (key: string): string => {
     if (this.namespace) {
       return `${this.namespace}${this.keyPrefixSeparator}${key}`
     }
@@ -182,7 +187,7 @@ export class KeyvUpstashRedis<T = any>
    * @param {number} [ttl] - the time to live in milliseconds
    */
   async set(key: string, value: any, ttl?: number): Promise<void> {
-    key = this.#getKeyName(key)
+    key = this.getKeyName(key)
 
     const finalTtl = ttl ?? this.defaultTtl
     if (finalTtl != undefined) {
@@ -201,7 +206,7 @@ export class KeyvUpstashRedis<T = any>
     const multi = this.client.multi()
 
     for (const { key, value, ttl } of entries) {
-      const prefixedKey = this.#getKeyName(key)
+      const prefixedKey = this.getKeyName(key)
       const finalTtl = ttl ?? this.defaultTtl
 
       if (finalTtl !== undefined) {
@@ -221,7 +226,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<boolean>} - true if the key exists, false if not
    */
   async has(key: string): Promise<boolean> {
-    key = this.#getKeyName(key)
+    key = this.getKeyName(key)
     const exists: number = await this.client.exists(key)
 
     return exists === 1
@@ -237,7 +242,7 @@ export class KeyvUpstashRedis<T = any>
     const multi = this.client.multi()
 
     for (const key of keys) {
-      const prefixedKey = this.#getKeyName(key)
+      const prefixedKey = this.getKeyName(key)
       multi.exists(prefixedKey)
     }
 
@@ -254,7 +259,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<U | undefined>} - the value or undefined if the key does not exist
    */
   async get<U = T>(key: string): Promise<U | undefined> {
-    key = this.#getKeyName(key)
+    key = this.getKeyName(key)
 
     const value = await this.client.get<T>(key)
 
@@ -268,7 +273,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<Array<U | undefined>>} - array of values or undefined if the key does not exist
    */
   async getMany<U = T>(keys: string[]): Promise<Array<U | undefined>> {
-    keys = keys.map(this.#getKeyName)
+    keys = keys.map(this.getKeyName)
     const values = await this.client.mget(keys)
 
     return values.map((value) => (value as U) ?? undefined)
@@ -286,9 +291,9 @@ export class KeyvUpstashRedis<T = any>
    *
    * @private
    */
-  async #genericDelete(key: string | string[]): Promise<boolean> {
+  private async genericDelete(key: string | string[]): Promise<boolean> {
     let keys = Array.isArray(key) ? key : [key]
-    keys = keys.map(this.#getKeyName)
+    keys = keys.map(this.getKeyName)
 
     let deleted = 0
     if (this.useUnlink) {
@@ -307,7 +312,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<boolean>} - true if the key was deleted, false if not
    */
   async delete(key: string): Promise<boolean> {
-    return this.#genericDelete(key)
+    return this.genericDelete(key)
   }
 
   /**
@@ -317,7 +322,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<boolean>} - true if any key was deleted, false if not
    */
   async deleteMany(keys: string[]): Promise<boolean> {
-    return this.#genericDelete(keys)
+    return this.genericDelete(keys)
   }
 
   /**
@@ -325,7 +330,7 @@ export class KeyvUpstashRedis<T = any>
    *
    * IMPORTANT: this can cause performance issues if there are a large number of keys in the store. Use with caution as not recommended for production.
    *
-   * If a namespace is not set it will clear all keys with no prefix.
+   * If a namespace is not set it will clear all keys.
    * If a namespace is set it will clear all keys with that namespace.
    *
    * @remarks
@@ -335,7 +340,7 @@ export class KeyvUpstashRedis<T = any>
    * @returns {Promise<void>}
    */
   async clear(): Promise<void> {
-    if (this.namespace) {
+    if (!this.namespace) {
       await this.client.flushdb()
     } else {
       try {
@@ -359,10 +364,6 @@ export class KeyvUpstashRedis<T = any>
             continue
           }
 
-          if (this.namespace) {
-            keys = keys.filter((key) => !key.includes(this.keyPrefixSeparator))
-          }
-
           if (keys.length > 0) {
             if (this.useUnlink) {
               await this.client.unlink(...keys)
@@ -383,7 +384,7 @@ export class KeyvUpstashRedis<T = any>
    * @param {string} [namespace] - the namespace to iterate over
    * @returns {AsyncGenerator<[string, U | undefined], void, unknown>} - async iterator with key value pairs
    */
-  public async *iteratorClient<U = T>(
+  public async *iterator<U = T>(
     namespace?: string
   ): AsyncGenerator<[string, U | undefined], void, unknown> {
     const getKeyWithoutPrefix = (key: string) => {
@@ -410,8 +411,9 @@ export class KeyvUpstashRedis<T = any>
         const values = await this.client.mget(keys)
         for (const [i] of keys.entries()) {
           const key = getKeyWithoutPrefix(keys[i])
-          const value = values ? values[i] : undefined
-          yield [key, value as U | undefined]
+          let value = values ? values[i] : undefined
+
+          if (value != undefined) yield [key, value as U | undefined]
         }
       }
     } while (cursor !== "0")
