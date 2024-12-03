@@ -9,3 +9,11 @@ Upstash Redis storage adapter for Keyv.
 # IMPORTANT
 
 The `automaticDeserialization` option is set to `false` by default and it is not recommended to change it because it can cause issues with storing and retrieving special types of values like Buffers, BigInt, etc.
+
+# TODOs
+
+- dockerized tests
+- type tests
+- CI/CD pipelines
+- README
+- publish on npm
