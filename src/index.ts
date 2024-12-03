@@ -9,7 +9,6 @@ type RedisConfigNodejsRequiredKeys = Pick<
 >
 
 type CommonOptions = {
-  dialect?: "redis"
   namespace?: string
   keyPrefixSeparator?: string
   defaultTtl?: number
@@ -39,7 +38,6 @@ type OptionWithoutRedis = Pick<
  * @property {Redis} [upstashRedis] - An existing Upstash Redis instance.
  * @property {string} [url] - The Upstash Redis REST API URL.
  * @property {string} [token] - The Upstash Redis REST API token.
- * @property {string} [dialect="redis"] - The dialect to use, defaults to "redis".
  * @property {string} [namespace] - An optional namespace to prefix all keys with.
  * @property {string} [keyPrefixSeparator="::"] - A custom separator to use between the namespace and the key.
  * @property {number} [defaultTtl] - The default time-to-live (TTL) for keys, in milliseconds.
@@ -121,7 +119,7 @@ export class KeyvUpstash<T = any>
   /**
    * The initial options provided to the constructor.
    */
-  #initialOptions: KeyvUpstashOptions
+  private readonly initialOptions: KeyvUpstashOptions
 
   /**
    * Creates an instance of KeyvUpstash.
@@ -133,8 +131,7 @@ export class KeyvUpstash<T = any>
   constructor(options: KeyvUpstashOptions) {
     super()
 
-    this.#initialOptions = { ...options }
-    this.#initialOptions.dialect = "redis"
+    this.initialOptions = { ...options }
 
     this.keyPrefixSeparator = options.keyPrefixSeparator ?? "::"
     this.namespace = options.namespace
@@ -157,7 +154,11 @@ export class KeyvUpstash<T = any>
    */
   get opts() {
     return {
-      ...this.#initialOptions,
+      ...this.initialOptions,
+
+      // Important for some of Keyv functionalities to work properly, e.g. iterator.
+      dialect: "redis",
+
       upstashRedis: this.client,
       namespace: this.namespace,
       keyPrefixSeparator: this.keyPrefixSeparator,
