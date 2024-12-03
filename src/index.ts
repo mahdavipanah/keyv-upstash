@@ -332,7 +332,7 @@ export class KeyvUpstash<T = any>
    * IMPORTANT: this can cause performance issues if there are a large number of keys in the store. Use with caution as not recommended for production.
    *
    * If a namespace is not set it will clear all keys.
-   * If a namespace is set it will clear all keys with that namespace.
+   * If a namespace is set it will clear all keys with that namespace (`FLUSHDB`).
    *
    * @remarks
    * If `useUnlink` is set to true, the `unlink` method of the client will be used to delete the keys.
@@ -381,6 +381,7 @@ export class KeyvUpstash<T = any>
 
   /**
    * Get an async iterator for the keys and values in the store. If a namespace is provided, it will only iterate over keys with that namespace.
+   * If not namespace is provided, it will iterate over all keys in the Redis DB.
    *
    * @param {string} [namespace] - the namespace to iterate over
    * @returns {AsyncGenerator<[string, U | undefined], void, unknown>} - async iterator with key value pairs
@@ -403,10 +404,6 @@ export class KeyvUpstash<T = any>
       })
       cursor = result[0]
       let keys = result[1]
-
-      if (!namespace) {
-        keys = keys.filter((key) => !key.includes(this.keyPrefixSeparator))
-      }
 
       if (keys.length > 0) {
         const values = await this.client.mget(keys)
