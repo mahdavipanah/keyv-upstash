@@ -12,7 +12,6 @@ The `automaticDeserialization` option is set to `false` by default and it is not
 
 # TODOs
 
-- dockerized tests
 - type tests
 - CI/CD pipelines
 - README
