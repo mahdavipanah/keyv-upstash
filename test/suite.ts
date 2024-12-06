@@ -3,7 +3,7 @@ import keyvTestSuite, { keyvIteratorTests } from "@keyv/test-suite"
 import { Keyv } from "keyv"
 import { createKeyvUpstash } from "./helpers"
 
-test.afterAll(async () => {
+test.beforeAll(async () => {
   const adapter = createKeyvUpstash()
   await adapter.client.flushdb()
 })
