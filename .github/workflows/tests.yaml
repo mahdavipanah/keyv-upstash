@@ -1,0 +1,34 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    needs: build
+    strategy:
+      matrix:
+        node: ["18", "20", "22"]
+    name: Test Node ${{ matrix.node }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Start Services
+        run: pnpm test:services:start
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Run the Tests
+        run: pnpm test
