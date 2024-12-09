@@ -38,6 +38,12 @@ In case you are passing a custom Upstash client instance, make sure to pass an i
 
 ## Usage
 
+First, install `keyv-upstash` and `keyv`:
+
+```bash
+npm install keyv-upstash keyv
+```
+
 Here is a standard use case where we implement `Keyv` with `keyv-upstash`:
 
 ```typescript
