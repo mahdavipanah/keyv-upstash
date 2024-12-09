@@ -34,6 +34,7 @@ In case you are passing a custom Upstash client instance, make sure to pass an i
 - [Using Cacheable with Upstash Redis](#using-cacheable-with-upstash-redis)
 - [API](#api)
 - [Differences from @keyv/redis](#differences-from-keyvredis)
+- [Contributing](CONTRIBUTING.md)
 - [License](#license)
 
 ## Usage
