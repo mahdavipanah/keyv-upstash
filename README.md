@@ -35,7 +35,7 @@ In case you are passing a custom Upstash client instance, make sure to pass an i
 - [Using Cacheable with Upstash Redis](#using-cacheable-with-upstash-redis)
 - [API](#api)
 - [Differences from @keyv/redis](#differences-from-keyvredis)
-- [Contributing](CONTRIBUTING.md)
+- [Contributing](./CONTRIBUTING.md)
 - [License](#license)
 
 ## Usage
@@ -195,4 +195,4 @@ Creates a new `KeyvUpstash` instance.
 
 ## License
 
-[MIT @ Hamidreza Mahdavipanah](LICENSE)
+[MIT @ Hamidreza Mahdavipanah](./LICENSE)
