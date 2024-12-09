@@ -22,6 +22,9 @@ jobs:
       - name: Start Services
         run: pnpm test:services:start
 
+      - name: Install Dependencies
+        run: pnpm install
+
       - name: Run the Tests
         run: pnpm test
 
