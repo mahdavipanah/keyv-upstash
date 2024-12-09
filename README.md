@@ -12,6 +12,5 @@ The `automaticDeserialization` option is set to `false` by default and it is not
 
 # TODOs
 
-- CI/CD pipelines
 - README
 - publish on npm

@@ -15,7 +15,7 @@
   "scripts": {
     "build": "rimraf ./dist && tsup src/index.ts --format cjs,esm --dts --clean",
     "prepare": "pnpm build",
-    "test": "pnpm build && vitest run --no-file-parallelism --coverage",
+    "test": "vitest run --no-file-parallelism --coverage",
     "test:services:start": "docker compose up -d",
     "test:services:stop": "docker compose down -v",
     "clean": "rimraf ./node_modules ./dist"
