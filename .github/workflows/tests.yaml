@@ -1,4 +1,4 @@
-name: test
+name: tests
 
 on:
   push:
@@ -32,5 +32,5 @@ jobs:
       - name: Build
         run: pnpm build
         
-      - name: Test Packages
+      - name: Run the Tests
         run: pnpm test
