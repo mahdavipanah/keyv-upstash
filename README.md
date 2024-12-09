@@ -2,7 +2,7 @@
 
 Upstash Redis storage adapter for [Keyv](https://github.com/jaredwray/keyv).
 
-[![build](https://github.com/mahdavipanah/keyv-upstash/actions/workflows/tests.yaml/badge.svg)](https://github.com/mahdavipanah/keyv-upstash/actions/workflows/tests.yaml)
+[![build and tests](https://github.com/mahdavipanah/keyv-upstash/actions/workflows/tests.yaml/badge.svg)](https://github.com/mahdavipanah/keyv-upstash/actions/workflows/tests.yaml)
 [![codecov](https://codecov.io/github/mahdavipanah/keyv-upstash/graph/badge.svg?token=3VWS982WYG)](https://codecov.io/github/mahdavipanah/keyv-upstash)
 [![npm](https://img.shields.io/npm/v/keyv-upstash)](https://www.npmjs.com/package/keyv-upstash)
 
