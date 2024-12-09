@@ -14,6 +14,7 @@ type CommonOptions = {
   defaultTtl?: number
   useUnlink?: boolean
   clearBatchSize?: number
+  noNamespaceAffectsAll?: boolean
 } & Omit<RedisConfigNodejs, keyof RedisConfigNodejsRequiredKeys>
 
 type OptionWithRedis = { upstashRedis: Redis } & CommonOptions
@@ -43,6 +44,7 @@ type OptionWithoutRedis = Pick<
  * @property {number} [defaultTtl] - The default time-to-live (TTL) for keys, in milliseconds.
  * @property {boolean} [useUnlink=true] - Whether to use the UNLINK command instead of DEL for deleting keys.
  * @property {number} [clearBatchSize=1000] - The number of keys to delete in a single batch when clearing the cache.
+ * @property {boolean} [noNamespaceAffectsAll=false] - Whether to allow clearing all keys when no namespace is set.
  */
 export type KeyvUpstashOptions = MergeExclusive<
   OptionWithRedis,
@@ -117,6 +119,11 @@ export class KeyvUpstash<T = any>
   clearBatchSize: number
 
   /**
+   * Whether to allow clearing all keys when no namespace is set. Defaults to `false`.
+   */
+  noNamespaceAffectsAll: boolean
+
+  /**
    * The initial options provided to the constructor.
    */
   private readonly initialOptions: KeyvUpstashOptions
@@ -138,6 +145,7 @@ export class KeyvUpstash<T = any>
     this.defaultTtl = options.defaultTtl
     this.useUnlink = options.useUnlink ?? true
     this.clearBatchSize = options.clearBatchSize ?? 1000
+    this.noNamespaceAffectsAll = options.noNamespaceAffectsAll ?? false
 
     if (optionsHasRedis(options)) {
       this.client = options.upstashRedis
@@ -165,6 +173,7 @@ export class KeyvUpstash<T = any>
       defaultTtl: this.defaultTtl,
       useUnlink: this.useUnlink,
       clearBatchSize: this.clearBatchSize,
+      noNamespaceAffectsAll: this.noNamespaceAffectsAll,
     }
   }
 
@@ -341,12 +350,11 @@ export class KeyvUpstash<T = any>
    * @returns {Promise<void>}
    */
   async clear(): Promise<void> {
-    if (!this.namespace) {
+    if (!this.namespace && this.noNamespaceAffectsAll) {
       await this.client.flushdb()
     } else {
       try {
         let cursor = "0"
-        const batchSize = this.clearBatchSize
         const match = this.namespace
           ? `${this.namespace}${this.keyPrefixSeparator}*`
           : "*"
@@ -354,7 +362,7 @@ export class KeyvUpstash<T = any>
         do {
           const result = await this.client.scan(Number.parseInt(cursor, 10), {
             match,
-            count: batchSize,
+            count: this.clearBatchSize,
             type: "string",
           })
 
@@ -365,6 +373,11 @@ export class KeyvUpstash<T = any>
             continue
           }
 
+          // If no namespace is provided, filter out keys with a namespace.
+          if (!this.namespace) {
+            keys = keys.filter((key) => !key.includes(this.keyPrefixSeparator))
+          }
+
           if (keys.length > 0) {
             if (this.useUnlink) {
               await this.client.unlink(...keys)
@@ -373,6 +386,7 @@ export class KeyvUpstash<T = any>
             }
           }
         } while (cursor !== "0")
+        /* c8 ignore next 3 */
       } catch (error) {
         this.emit("error", error)
       }
@@ -405,10 +419,17 @@ export class KeyvUpstash<T = any>
       cursor = result[0]
       let keys = result[1]
 
+      // If no namespace is provided, filter out keys with a namespace.
+      if (!namespace && !this.noNamespaceAffectsAll) {
+        keys = keys.filter((key) => !key.includes(this.keyPrefixSeparator))
+      }
+
       if (keys.length > 0) {
         const values = await this.client.mget(keys)
         for (const [i] of keys.entries()) {
           const key = getKeyWithoutPrefix(keys[i])
+
+          /* c8 ignore next 1 */
           let value = values ? values[i] : undefined
 
           if (value != undefined) yield [key, value as U | undefined]

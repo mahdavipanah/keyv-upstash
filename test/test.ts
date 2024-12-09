@@ -282,8 +282,9 @@ describe("KeyvUpstash", () => {
       expect(value).toBeUndefined()
     })
 
-    test("should clear all with no namespace ", async () => {
+    test("should clear all with no namespace if noNamespaceAffectsAll is true", async () => {
       const keyvUpstash = createKeyvUpstash()
+      keyvUpstash.noNamespaceAffectsAll = true
 
       keyvUpstash.namespace = "ns1"
       await keyvUpstash.set("foo91", "bar")
@@ -294,6 +295,21 @@ describe("KeyvUpstash", () => {
       keyvUpstash.namespace = "ns1"
       const value = await keyvUpstash.get("foo91")
       expect(value).toBeUndefined()
+    })
+
+    test("should not clear all with no namespace if noNamespaceAffectsAll is false", async () => {
+      const keyvUpstash = createKeyvUpstash()
+      keyvUpstash.noNamespaceAffectsAll = false
+
+      keyvUpstash.namespace = "ns1"
+      await keyvUpstash.set("foo91", "bar")
+      keyvUpstash.namespace = undefined
+      await keyvUpstash.set("foo912", "bar2")
+      await keyvUpstash.set("foo913", "bar3")
+      await keyvUpstash.clear()
+      keyvUpstash.namespace = "ns1"
+      const value = await keyvUpstash.get("foo91")
+      expect(value).toBeDefined()
     })
 
     test("should clear namespace but not other ones", async () => {
@@ -409,6 +425,41 @@ describe("KeyvUpstash", () => {
       expect(values).toContain("bar")
       expect(values).toContain("bar2")
       expect(values).toContain("bar3")
+    })
+
+    test("should not iterate over keys with a namespace when no namespace is set", async () => {
+      const keyvUpstash = createKeyvUpstash()
+
+      const namespace = "ns1"
+
+      keyvUpstash.namespace = namespace
+      await keyvUpstash.set("foo96", "bar")
+      await keyvUpstash.set("foo962", "bar2")
+      await keyvUpstash.set("foo963", "bar3")
+
+      keyvUpstash.namespace = undefined
+      await keyvUpstash.set("foo961", "bar4")
+      await keyvUpstash.set("foo9612", "bar5")
+      await keyvUpstash.set("foo9613", "bar6")
+      const keys = []
+      const values = []
+      for await (const [key, value] of keyvUpstash.iterator(undefined)) {
+        keys.push(key)
+        values.push(value)
+      }
+      expect(keys).toContain("foo961")
+      expect(keys).toContain("foo9612")
+      expect(keys).toContain("foo9613")
+      expect(values).toContain("bar4")
+      expect(values).toContain("bar5")
+      expect(values).toContain("bar6")
+      
+      expect(keys).not.toContain("foo96")
+      expect(keys).not.toContain("foo962")
+      expect(keys).not.toContain("foo963")
+      expect(values).not.toContain("bar")
+      expect(values).not.toContain("bar2")
+      expect(values).not.toContain("bar3")
     })
   })
 })
