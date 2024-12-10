@@ -352,10 +352,10 @@ export class KeyvUpstash<T = any>
    * @returns {Promise<void>}
    */
   async clear(): Promise<void> {
-    if (!this.namespace && this.noNamespaceAffectsAll) {
-      await this.client.flushdb()
-    } else {
-      try {
+    try {
+      if (!this.namespace && this.noNamespaceAffectsAll) {
+        await this.client.flushdb()
+      } else {
         let cursor = "0"
         const match = this.namespace
           ? `${this.namespace}${this.keyPrefixSeparator}*`
@@ -388,10 +388,10 @@ export class KeyvUpstash<T = any>
             }
           }
         } while (cursor !== "0")
-        /* c8 ignore next 3 */
-      } catch (error) {
-        this.emit("error", error)
       }
+      /* c8 ignore next 3 */
+    } catch (error) {
+      this.emit("error", error)
     }
   }
 
