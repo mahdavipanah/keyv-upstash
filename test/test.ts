@@ -453,13 +453,68 @@ describe("KeyvUpstash", () => {
       expect(values).toContain("bar4")
       expect(values).toContain("bar5")
       expect(values).toContain("bar6")
-      
+
       expect(keys).not.toContain("foo96")
       expect(keys).not.toContain("foo962")
       expect(keys).not.toContain("foo963")
       expect(values).not.toContain("bar")
       expect(values).not.toContain("bar2")
       expect(values).not.toContain("bar3")
+    })
+
+    test("should be able to iterate over all keys if no namespace is set and noNamespaceAffectsAll is true", async () => {
+      const keyvUpstash = createKeyvUpstash()
+      keyvUpstash.noNamespaceAffectsAll = true
+
+      keyvUpstash.namespace = "ns1"
+      await keyvUpstash.set("foo1", "bar1")
+      keyvUpstash.namespace = "ns2"
+      await keyvUpstash.set("foo2", "bar2")
+      keyvUpstash.namespace = undefined
+      await keyvUpstash.set("foo3", "bar3")
+
+      const keys = []
+      const values = []
+      for await (const [key, value] of keyvUpstash.iterator()) {
+        keys.push(key)
+        values.push(value)
+      }
+
+      expect(keys).toContain("ns1::foo1")
+      expect(keys).toContain("ns2::foo2")
+      expect(keys).toContain("foo3")
+      expect(values).toContain("bar1")
+      expect(values).toContain("bar2")
+      expect(values).toContain("bar3")
+    })
+
+    test("should only iterate over keys with no namespace if no namespace is set and noNamespaceAffectsAll is false", async () => {
+      const keyvUpstash = createKeyvUpstash()
+      keyvUpstash.noNamespaceAffectsAll = false
+
+      keyvUpstash.namespace = "ns1"
+      await keyvUpstash.set("foo1", "bar1")
+      keyvUpstash.namespace = "ns2"
+      await keyvUpstash.set("foo2", "bar2")
+      keyvUpstash.namespace = undefined
+      await keyvUpstash.set("foo3", "bar3")
+
+      const keys = []
+      const values = []
+      for await (const [key, value] of keyvUpstash.iterator()) {
+        keys.push(key)
+        values.push(value)
+      }
+
+      expect(keys).toContain("foo3")
+      expect(values).toContain("bar3")
+
+      expect(keys).not.toContain("foo1")
+      expect(keys).not.toContain("ns1::foo1")
+      expect(keys).not.toContain("ns2::foo2")
+      expect(keys).not.toContain("foo2")
+      expect(values).not.toContain("bar1")
+      expect(values).not.toContain("bar2")
     })
   })
 })

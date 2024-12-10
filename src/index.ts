@@ -397,7 +397,7 @@ export class KeyvUpstash<T = any>
 
   /**
    * Get an async iterator for the keys and values in the store. If a namespace is provided, it will only iterate over keys with that namespace.
-   * If not namespace is provided, it will iterate over all keys in the Redis DB.
+   * If not namespace is provided, depending on the `noNamespaceAffectsAll` option, it will iterate over all keys or only keys without a namespace.
    *
    * @param {string} [namespace] - the namespace to iterate over
    * @returns {AsyncGenerator<[string, U | undefined], void, unknown>} - async iterator with key value pairs
