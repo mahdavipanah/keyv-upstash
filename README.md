@@ -30,7 +30,6 @@ In case you are passing a custom Upstash client instance, make sure to pass an i
 
 - [Usage](#usage)
 - [Namespaces](#namespaces)
-- [Options](#options)
 - [Performance Considerations](#performance-considerations)
 - [Using Cacheable with Upstash Redis](#using-cacheable-with-upstash-redis)
 - [API](#api)
