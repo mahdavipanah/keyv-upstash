@@ -107,20 +107,6 @@ await keyv.set("foo", "bar")
 
 This will prefix all keys with `my-namespace::`.
 
-## Options
-
-`KeyvUpstash` supports the following options:
-
-- **url**: The Upstash Redis REST API URL.
-- **token**: The Upstash Redis REST API token.
-- **upstashRedis**: An existing Upstash Redis client instance.
-- **namespace**: An optional namespace to prefix all keys with.
-- **keyPrefixSeparator**: A custom separator between the namespace and the key (default is `::`).
-- **defaultTtl**: The default time-to-live (TTL) for keys, in milliseconds.
-- **useUnlink**: Whether to use the `UNLINK` command instead of `DEL` for deleting keys (default is `true`).
-- **clearBatchSize**: The number of keys to delete in a single batch when clearing the cache (default is `1000`).
-- **noNamespaceAffectsAll**: Whether to allow clearing all keys when no namespace is set (default is `false`).
-
 ## Performance Considerations
 
 - **Clear Operations**: The `clear()` method uses the `SCAN` command to iterate over keys and delete them in batches. This can be slow if you have a large dataset. It's recommended to use namespaces to limit the keys being cleared. If you don't set namespaces, you can enable `noNamespaceAffectsAll` to clear all keys using the `FLUSHDB` command which is faster.
