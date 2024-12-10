@@ -1,6 +1,6 @@
 {
   "name": "keyv-upstash",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Upstash Redis adapter for Keyv",
   "type": "module",
   "main": "dist/index.cjs",

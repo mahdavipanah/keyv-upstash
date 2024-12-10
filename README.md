@@ -161,21 +161,19 @@ Creates a new `KeyvUpstash` instance.
 - **set(key, value, ttl?)**: Set a value in the cache.
 - **get(key)**: Get a value from the cache.
 - **delete(key)**: Delete a key from the cache.
-- **clear()**: Clear all keys in the cache (subject to namespaces).
+- **clear()**: Clear all keys in the namespace. If the namespace is not set it will clear all keys that are not prefixed with a namespace unless `noNamespaceAffectsAll` is set to `true`.
 - **setMany(entries)**: Set multiple values in the cache.
 - **getMany(keys)**: Get multiple values from the cache.
 - **deleteMany(keys)**: Delete multiple keys from the cache.
 - **has(key)**: Check if a key exists in the cache.
 - **hasMany(keys)**: Check if multiple keys exist in the cache.
-- **iterator(namespace?)**: Get an async iterator over keys and values.
+- **iterator(namespace?)**: Create a new iterator for the keys. If the namespace is not set it will iterate over all keys that are not prefixed with a namespace unless `noNamespaceAffectsAll` is set to `true`.
 
 ## Differences from @keyv/redis
 
 - **Backend**: Uses [Upstash Redis](https://upstash.com/), an HTTP-based, serverless Redis service.
 - **Connection**: Requires Upstash REST API URL and token instead of a traditional Redis connection URL.
-- **Cluster Support**: Upstash Redis does not support Redis Clustering.
 - **TLS and Sockets**: Connection options related to sockets and TLS are not applicable.
-- **Automatic Serialization**: The `automaticDeserialization` option is set to `false` by default to prevent issues with special value types.
 - **Compatibility**: Aims to be compatible with `@keyv/redis` where possible, but some differences exist due to the nature of Upstash Redis.
 
 ## License
