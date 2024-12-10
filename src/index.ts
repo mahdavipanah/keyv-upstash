@@ -119,7 +119,9 @@ export class KeyvUpstash<T = any>
   clearBatchSize: number
 
   /**
-   * Whether to allow clearing all keys when no namespace is set. Defaults to `false`.
+   * Whether to allow clearing all keys when no namespace is set.
+   * If set to true and no namespace is set, iterate() will return all keys.
+   * Defaults to `false`.
    */
   noNamespaceAffectsAll: boolean
 
