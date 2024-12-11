@@ -106,6 +106,35 @@ await keyv.set("foo", "bar")
 
 This will prefix all keys with `my-namespace::`.
 
+## Typescript
+
+When initializing `KeyvUpstash`, you can specify the type of the values you are storing:
+
+```typescript
+import Keyv from "keyv"
+import { KeyvUpstash } from "keyv-upstash"
+
+interface User {
+  id: number
+  name: string
+}
+
+const keyv = new Keyv<User>({
+  store: new KeyvUpstash<User>({
+    url: "your-upstash-redis-url",
+    token: "your-upstash-redis-token",
+  }),
+})
+
+await keyv.set("user:1", { id: 1, name: "Alice" })
+const user = await keyv.get("user:1")
+console.log(user.name) // 'Alice'
+
+// You can also specify types when calling methods
+const user = await keyv.get<User>("user:1")
+console.log(user.name) // 'Alice'
+```
+
 ## Performance Considerations
 
 - **Clear Operations**: The `clear()` method uses the `SCAN` command to iterate over keys and delete them in batches. This can be slow if you have a large dataset. It's recommended to use namespaces to limit the keys being cleared. If you don't set namespaces, you can enable `noNamespaceAffectsAll` to clear all keys using the `FLUSHDB` command which is faster.
