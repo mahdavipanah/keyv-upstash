@@ -109,7 +109,7 @@ This will prefix all keys with `my-namespace::`.
 
 ## Typescript
 
-When initializing `KeyvUpstash`, you can specify the type of the values you are storing:
+When initializing `KeyvUpstash`, you can specify the type of the values you are storing and you can also specify types when calling methods:
 
 ```typescript
 import Keyv from "keyv"
@@ -131,7 +131,7 @@ await keyv.set("user:1", { id: 1, name: "Alice" })
 const user = await keyv.get("user:1")
 console.log(user.name) // 'Alice'
 
-// You can also specify types when calling methods
+// specify types when calling methods
 const user = await keyv.get<User>("user:1")
 console.log(user.name) // 'Alice'
 ```
